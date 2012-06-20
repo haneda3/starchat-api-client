@@ -30,16 +30,23 @@ p "=== subscribe_channel ==="
 s.subscribe_channel(test_channel)
 
 p "=== get_stream ==="
-s.get_stream do |res|
-  res.read_body do |body|
-    b = JSON.parse(body)
-    if b['type'] == 'message'
-      message = b['message']
-      if message['notice'] == false
+while true
+  begin
+    s.get_stream do |res|
+      res.read_body do |body|
+        b = JSON.parse(body)
+        next if b['type'] != 'message'
+        message = b['message']
+        next if message['notice'] != false
+
         if message['body'] =~ /スマホ/
           s.post_comment(message['channel_name'], SUMAHO)
         end
       end
     end
+  rescue Timeout::Error
+    p 'Timeout::Error'
+  rescue JSON::ParserError
+    p 'Json::ParserError'
   end
 end
