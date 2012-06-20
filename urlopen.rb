@@ -17,21 +17,24 @@ while true
     s.get_stream do |res|
       res.read_body do |body|
         b = JSON.parse(body)
-        if b['type'] == 'message' then
-          message = b['message']
-          if message['notice'] == false then
-            if message['body'] =~ /((http|https):\/\/.*)/ then
-              agent = Mechanize.new
-              agent.get($1)
-              p agent.page.title
-              s.post_comment(message['channel_name'], "【URL】" + agent.page.title)
-            end
-          end
+        
+        next if b['type'] != 'message'
+        
+        message = b['message']
+        
+        next if message['notice'] != false
+        
+        if message['body'] =~ /((http|https):\/\/.*)/ then
+          agent = Mechanize.new
+          agent.get($1)
+          p agent.page.title
+          s.post_comment(message['channel_name'], "【URL】" + agent.page.title)
         end
       end
     end
   rescue Timeout::Error
-    p 'Timeout'
-  rescue
+    p 'Timeout::Error'
+  rescue JSON::ParserError
+    p 'Json::ParserError'
   end
 end
