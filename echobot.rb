@@ -11,19 +11,13 @@ p "=== subscribe_channel ==="
 s.subscribe_channel(test_channel)
 
 p "=== get_stream ==="
-while true
-  begin
-    s.get_stream do |res|
-      res.read_body do |body|
-        b = JSON.parse(body)
-        if b['type'] == 'message'
-          message = b['message']
-          if message['notice'] == false
-            s.post_comment(message['channel_name'], message['body'])
-          end
-        end
-      end
+s.get_stream do |body|
+  p body
+  if body['type'] == 'message'
+    message = body['message']
+    if message['notice'] == false
+      s.post_comment(message['channel_name'], message['body'])
     end
-  rescue Timeout::Error
   end
 end
+

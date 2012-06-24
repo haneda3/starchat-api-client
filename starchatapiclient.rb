@@ -76,7 +76,23 @@ class StarChatApiClient
     Net::HTTP.start(@url) do |http|
       req = Net::HTTP::Get.new('/users/' + enc(@username) + '/stream');
       req.basic_auth(@username, @password)
-      http.request(req,&block)
+      http.request(req) do |res|
+        txt = ""
+        res.read_body do |body|
+          body.each_line {|line|
+            next if line == "\n" # bypass return code
+            
+            line = txt + line if txt != ""
+            
+            begin
+              block.call(JSON.parse(line))
+              txt = ""
+            rescue JSON::ParserError
+              txt += line
+            end
+          }
+        end
+      end
     end
   end
 end
